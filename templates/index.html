@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Security Scanner</title>
+
+    <style>
+        :root {
+            --bg: #050807;
+            --panel: #0b100e;
+            --panel-2: #0e1512;
+            --border: #1c2a24;
+            --text: #edf7f1;
+            --muted: #82958c;
+            --green: #35f28a;
+            --green-dark: #123d29;
+            --blue: #4aa3ff;
+            --yellow: #ffc857;
+            --red: #ff5c68;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family:
+                Inter,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            background:
+                radial-gradient(
+                    circle at 80% 0%,
+                    rgba(53, 242, 138, 0.08),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at 10% 20%,
+                    rgba(74, 163, 255, 0.04),
+                    transparent 25%
+                ),
+                var(--bg);
+
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.025;
+            background-image:
+                linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .container {
+            width: min(1180px, 92%);
+            margin: auto;
+            padding: 42px 0 60px;
+        }
+
+        /* HEADER */
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 38px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-icon {
+            width: 44px;
+            height: 44px;
+            border: 1px solid rgba(53,242,138,.4);
+            border-radius: 12px;
+
+            display: grid;
+            place-items: center;
+
+            background: rgba(53,242,138,.07);
+            color: var(--green);
+
+            font-size: 20px;
+
+            box-shadow:
+                0 0 25px rgba(53,242,138,.08);
+        }
+
+        .brand h2 {
+            font-size: 16px;
+            letter-spacing: .5px;
+        }
+
+        .brand p {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 3px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,.02);
+
+            padding: 9px 13px;
+            border-radius: 999px;
+
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: .6px;
+            text-transform: uppercase;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+
+            box-shadow: 0 0 12px var(--green);
+        }
+
+        /* HERO */
+
+        .hero {
+            margin-bottom: 32px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+
+            padding: 7px 11px;
+            border-radius: 999px;
+
+            border: 1px solid rgba(53,242,138,.25);
+            background: rgba(53,242,138,.05);
+
+            color: var(--green);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+
+            margin-bottom: 16px;
+        }
+
+        .hero h1 {
+            font-size: clamp(36px, 5vw, 62px);
+            line-height: 1;
+            letter-spacing: -2.5px;
+            margin-bottom: 14px;
+        }
+
+        .hero h1 span {
+            color: var(--green);
+        }
+
+        .hero p {
+            max-width: 650px;
+            color: var(--muted);
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        /* SCAN PANEL */
+
+        .panel {
+            border: 1px solid var(--border);
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(255,255,255,.035),
+                    rgba(255,255,255,.012)
+                );
+
+            border-radius: 18px;
+            padding: 26px;
+
+            box-shadow:
+                0 20px 60px rgba(0,0,0,.25);
+
+            margin-bottom: 34px;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .panel-subtitle {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .terminal-label {
+            color: var(--green);
+            font-family: monospace;
+            font-size: 11px;
+        }
+
+        .scan-form {
+            display: grid;
+            grid-template-columns: 1.8fr 1fr 1fr auto;
+            gap: 12px;
+            align-items: end;
+        }
+
+        label {
+            display: block;
+            color: var(--muted);
+            font-size: 11px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: .7px;
+        }
+
+        input {
+            width: 100%;
+            height: 48px;
+
+            border: 1px solid var(--border);
+            border-radius: 10px;
+
+            background: #070b09;
+            color: var(--text);
+
+            padding: 0 14px;
+            outline: none;
+
+            font-size: 14px;
+            transition: .2s;
+        }
+
+        input:focus {
+            border-color: rgba(53,242,138,.55);
+
+            box-shadow:
+                0 0 0 3px rgba(53,242,138,.08);
+        }
+
+        .scan-btn {
+            height: 48px;
+            padding: 0 25px;
+
+            border: none;
+            border-radius: 10px;
+
+            background: var(--green);
+            color: #031008;
+
+            font-weight: 800;
+            letter-spacing: .5px;
+
+            cursor: pointer;
+
+            transition:
+                transform .2s,
+                box-shadow .2s,
+                opacity .2s;
+        }
+
+        .scan-btn:hover {
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 10px 30px rgba(53,242,138,.18);
+        }
+
+        .scan-btn:disabled {
+            opacity: .6;
+            cursor: wait;
+            transform: none;
+        }
+
+        /* SCANNING */
+
+        .scan-progress {
+            display: none;
+            margin-top: 20px;
+
+            border: 1px solid rgba(53,242,138,.18);
+            background: rgba(53,242,138,.035);
+
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .scan-progress.active {
+            display: block;
+        }
+
+        .progress-top {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+
+            font-size: 12px;
+        }
+
+        .scanning-text {
+            color: var(--green);
+            font-family: monospace;
+        }
+
+        .progress-bar {
+            height: 5px;
+            background: #152019;
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 35%;
+
+            background: var(--green);
+            border-radius: inherit;
+
+            animation: scanning 1.2s infinite ease-in-out;
+        }
+
+        @keyframes scanning {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(300%); }
+        }
+
+        /* RESULTS */
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+
+            margin-bottom: 18px;
+        }
+
+        .results-header h2 {
+            font-size: 25px;
+        }
+
+        .target-display {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .timestamp {
+            color: var(--muted);
+            font-family: monospace;
+            font-size: 11px;
+        }
+
+        /* STATS */
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .stat {
+            position: relative;
+            overflow: hidden;
+
+            border: 1px solid var(--border);
+            background: var(--panel);
+
+            border-radius: 14px;
+            padding: 20px;
+        }
+
+        .stat::after {
+            content: "";
+            position: absolute;
+
+            width: 100px;
+            height: 100px;
+
+            right: -50px;
+            top: -50px;
+
+            border-radius: 50%;
+            background: rgba(53,242,138,.08);
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .7px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 800;
+            margin-top: 8px;
+        }
+
+        .stat-green {
+            color: var(--green);
+        }
+
+        .stat-blue {
+            color: var(--blue);
+        }
+
+        .stat-yellow {
+            color: var(--yellow);
+        }
+
+        /* PORT CARD */
+
+        .port-card {
+            border: 1px solid var(--border);
+            background: var(--panel);
+
+            border-radius: 16px;
+            padding: 22px;
+
+            margin-bottom: 14px;
+        }
+
+        .port-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            margin-bottom: 18px;
+        }
+
+        .port-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            font-size: 18px;
+            font-weight: 750;
+        }
+
+        .port-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+
+            background: var(--green);
+            box-shadow: 0 0 12px rgba(53,242,138,.7);
+        }
+
+        .open-badge {
+            padding: 5px 10px;
+
+            border-radius: 999px;
+
+            color: var(--green);
+            background: rgba(53,242,138,.08);
+            border: 1px solid rgba(53,242,138,.2);
+
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .5px;
+        }
+
+        .details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .detail {
+            border: 1px solid #17211c;
+            background: #080d0b;
+
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .detail.full {
+            grid-column: 1 / -1;
+        }
+
+        .detail-label {
+            color: #65776e;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .detail-value {
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .risk-info {
+            color: var(--blue);
+            font-weight: 700;
+        }
+
+        .risk-low {
+            color: var(--green);
+            font-weight: 700;
+        }
+
+        .risk-medium {
+            color: var(--yellow);
+            font-weight: 700;
+        }
+
+        .risk-high {
+            color: var(--red);
+            font-weight: 700;
+        }
+
+        /* EMPTY */
+
+        .empty {
+            border: 1px dashed var(--border);
+            border-radius: 14px;
+            padding: 35px;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .empty-icon {
+            font-size: 30px;
+            margin-bottom: 10px;
+        }
+
+        /* FOOTER */
+
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+
+            border-top: 1px solid var(--border);
+
+            text-align: center;
+            color: #506159;
+            font-size: 11px;
+        }
+
+        /* RESPONSIVE */
+
+        @media (max-width: 800px) {
+            .scan-form {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .details {
+                grid-template-columns: 1fr;
+            }
+
+            .detail.full {
+                grid-column: auto;
+            }
+
+            header {
+                align-items: flex-start;
+                gap: 15px;
+                flex-direction: column;
+            }
+
+            .results-header {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <header>
+        <div class="brand">
+            <div class="brand-icon">⌁</div>
+
+            <div>
+                <h2>NETWORK SECURITY</h2>
+                <p>TCP PORT ANALYSIS ENGINE</p>
+            </div>
+        </div>
+
+        <div class="status">
+            <span class="status-dot"></span>
+            Scanner Online
+        </div>
+    </header>
+
+
+    <section class="hero">
+
+        <div class="eyebrow">
+            <span>●</span>
+            Security Assessment Tool
+        </div>
+
+        <h1>
+            Network Security
+            <span>Scanner</span>
+        </h1>
+
+        <p>
+            Discover open TCP ports, identify exposed services,
+            evaluate security risk, and generate structured scan reports.
+        </p>
+
+    </section>
+
+
+    <section class="panel">
+
+        <div class="panel-header">
+
+            <div>
+                <div class="panel-title">Start a Security Scan</div>
+
+                <div class="panel-subtitle">
+                    Configure the target and port range below.
+                </div>
+            </div>
+
+            <div class="terminal-label">
+                ./scanner --scan
+            </div>
+
+        </div>
+
+
+        <form id="scanForm" class="scan-form">
+
+            <div>
+                <label for="target">Target IP Address</label>
+
+                <input
+                    id="target"
+                    name="target"
+                    type="text"
+                    value="127.0.0.1"
+                    placeholder="127.0.0.1"
+                    required
+                >
+            </div>
+
+
+            <div>
+                <label for="start_port">Starting Port</label>
+
+                <input
+                    id="start_port"
+                    name="start_port"
+                    type="number"
+                    value="1"
+                    min="1"
+                    max="65535"
+                    required
+                >
+            </div>
+
+
+            <div>
+                <label for="end_port">Ending Port</label>
+
+                <input
+                    id="end_port"
+                    name="end_port"
+                    type="number"
+                    value="1000"
+                    min="1"
+                    max="65535"
+                    required
+                >
+            </div>
+
+
+            <button id="scanButton" class="scan-btn" type="submit">
+                SCAN
+            </button>
+
+        </form>
+
+
+        <div id="scanProgress" class="scan-progress">
+
+            <div class="progress-top">
+
+                <span class="scanning-text">
+                    ● SCANNING NETWORK...
+                </span>
+
+                <span id="scanStatus">
+                    Analyzing ports
+                </span>
+
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <section id="resultsSection">
+
+        <div class="results-header">
+
+            <div>
+                <h2>Scan Results</h2>
+
+                <div id="targetText" class="target-display">
+                    No scan executed yet.
+                </div>
+            </div>
+
+            <div id="timestamp" class="timestamp"></div>
+
+        </div>
+
+
+        <div class="stats">
+
+            <div class="stat">
+                <div class="stat-label">Open Ports</div>
+
+                <div id="openPortsCount"
+                     class="stat-value stat-green">
+                    —
+                </div>
+            </div>
+
+
+            <div class="stat">
+                <div class="stat-label">High Risk Findings</div>
+
+                <div id="highRiskCount"
+                     class="stat-value stat-yellow">
+                    —
+                </div>
+            </div>
+
+
+            <div class="stat">
+                <div class="stat-label">HTTP Services</div>
+
+                <div id="httpCount"
+                     class="stat-value stat-blue">
+                    —
+                </div>
+            </div>
+
+        </div>
+
+
+        <div id="portResults">
+
+            <div class="empty">
+
+                <div class="empty-icon">⌁</div>
+
+                <div>
+                    Configure a target and start a scan
+                    to view security findings.
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <footer>
+        Network Security Scanner · Python · Flask · TCP Port Analysis
+    </footer>
+
+</div>
+
+
+<script>
+
+const form = document.getElementById("scanForm");
+
+const button = document.getElementById("scanButton");
+
+const progress = document.getElementById("scanProgress");
+
+const targetText = document.getElementById("targetText");
+
+const timestamp = document.getElementById("timestamp");
+
+const openPortsCount = document.getElementById("openPortsCount");
+
+const highRiskCount = document.getElementById("highRiskCount");
+
+const httpCount = document.getElementById("httpCount");
+
+const portResults = document.getElementById("portResults");
+
+
+form.addEventListener("submit", async function(event) {
+
+    event.preventDefault();
+
+
+    const target =
+        document.getElementById("target").value.trim();
+
+    const start_port =
+        Number(document.getElementById("start_port").value);
+
+    const end_port =
+        Number(document.getElementById("end_port").value);
+
+
+    if (
+        start_port < 1 ||
+        end_port > 65535 ||
+        start_port > end_port
+    ) {
+
+        alert(
+            "Invalid port range. Ports must be between 1 and 65535."
+        );
+
+        return;
+    }
+
+
+    button.disabled = true;
+
+    button.textContent = "SCANNING...";
+
+    progress.classList.add("active");
+
+    portResults.innerHTML = `
+        <div class="empty">
+            <div class="empty-icon">◌</div>
+            Scanning ${target}...
+        </div>
+    `;
+
+
+    try {
+
+        const response = await fetch("/scan", {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                target: target,
+                start_port: start_port,
+                end_port: end_port
+            })
+
+        });
+
+
+        const data = await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.error || "Scan failed."
+            );
+
+        }
+
+
+        renderResults(data, target);
+
+    }
+
+    catch (error) {
+
+        portResults.innerHTML = `
+            <div class="empty">
+                <div class="empty-icon">⚠</div>
+                <strong>Scan failed</strong>
+                <br><br>
+                ${escapeHtml(error.message)}
+            </div>
+        `;
+
+    }
+
+    finally {
+
+        button.disabled = false;
+
+        button.textContent = "SCAN";
+
+        progress.classList.remove("active");
+
+    }
+
+});
+
+
+function renderResults(data, target) {
+
+    const results = data.open_ports || data.results || [];
+
+    const highRisk = results.filter(
+        item =>
+            String(item.risk || "").toLowerCase() === "high"
+    ).length;
+
+    const httpServices = results.filter(
+        item =>
+            String(item.protocol || "").toUpperCase() === "HTTP"
+    ).length;
+
+
+    openPortsCount.textContent = results.length;
+
+    highRiskCount.textContent = highRisk;
+
+    httpCount.textContent = httpServices;
+
+
+    targetText.textContent =
+        `Target: ${target}`;
+
+
+    timestamp.textContent =
+        new Date().toLocaleString();
+
+
+    if (!results.length) {
+
+        portResults.innerHTML = `
+            <div class="empty">
+
+                <div class="empty-icon">✓</div>
+
+                <strong>No open ports detected</strong>
+
+                <br><br>
+
+                The scanned range did not expose
+                any reachable TCP services.
+
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    portResults.innerHTML =
+        results.map(renderPort).join("");
+
+}
+
+
+function renderPort(item) {
+
+    const risk =
+        String(item.risk || "UNKNOWN").toLowerCase();
+
+
+    let riskClass = "risk-info";
+
+
+    if (risk.includes("high")) {
+        riskClass = "risk-high";
+    }
+
+    else if (risk.includes("medium")) {
+        riskClass = "risk-medium";
+    }
+
+    else if (risk.includes("low")) {
+        riskClass = "risk-low";
+    }
+
+
+    return `
+
+        <div class="port-card">
+
+            <div class="port-header">
+
+                <div class="port-title">
+
+                    <span class="port-dot"></span>
+
+                    Port ${escapeHtml(item.port)}
+
+                </div>
+
+                <div class="open-badge">
+                    OPEN
+                </div>
+
+            </div>
+
+
+            <div class="details">
+
+                <div class="detail">
+
+                    <div class="detail-label">
+                        Protocol
+                    </div>
+
+                    <div class="detail-value">
+                        ${escapeHtml(item.protocol || "Unknown")}
+                    </div>
+
+                </div>
+
+
+                <div class="detail">
+
+                    <div class="detail-label">
+                        Risk Level
+                    </div>
+
+                    <div class="detail-value ${riskClass}">
+                        ${escapeHtml(item.risk || "Unknown")}
+                    </div>
+
+                </div>
+
+
+                <div class="detail">
+
+                    <div class="detail-label">
+                        Response
+                    </div>
+
+                    <div class="detail-value">
+                        ${escapeHtml(item.response || "No response")}
+                    </div>
+
+                </div>
+
+
+                <div class="detail">
+
+                    <div class="detail-label">
+                        Finding
+                    </div>
+
+                    <div class="detail-value">
+                        ${escapeHtml(item.finding || "No finding")}
+                    </div>
+
+                </div>
+
+
+                <div class="detail full">
+
+                    <div class="detail-label">
+                        Recommendation
+                    </div>
+
+                    <div class="detail-value">
+                        ${escapeHtml(
+                            item.recommendation ||
+                            "Review this exposed service."
+                        )}
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    `;
+}
+
+
+function escapeHtml(value) {
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+</script>
+
+</body>
+</html>
