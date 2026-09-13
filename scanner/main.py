@@ -1,7 +1,7 @@
 import socket
 from concurrent.futures import ThreadPoolExecutor
 from scanner.services import detect_service
-from scanner.risk import assess_risk
+from scanner.risk import assess
 from scanner.reporting import save_report
 
 def check_port(target, port):
@@ -58,7 +58,7 @@ def main():
         print("Open ports:\n")
         for port in open_ports:
             service = detect_service(target, port)
-            assessment = assess_risk(port, service["protocol"])
+            assessment = assess(port, service["protocol"])
             report_results.append({
                 "port": port,
                 "status": "OPEN",

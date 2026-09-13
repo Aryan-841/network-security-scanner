@@ -1,20 +1,20 @@
-from scanner.risk import assess_risk
+from scanner.risk import assess
 from scanner.main import validate_port_range
 
 def test_http_service_is_informational():
-    result = assess_risk(3000, "HTTP")
+    result = assess(3000, "HTTP")
 
     assert result["risk"] == "INFORMATIONAL"
 
 
 def test_https_service_is_low_risk():
-    result = assess_risk(443, "HTTPS")
+    result = assess(443, "HTTPS")
 
     assert result["risk"] == "LOW"
 
 
 def test_ssh_service_is_high_risk():
-    result = assess_risk(22, "SSH")
+    result = assess(22, "SSH")
 
     assert result["risk"] == "HIGH"
 
