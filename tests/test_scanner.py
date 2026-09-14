@@ -30,3 +30,6 @@ def test_valid_target():
 
 def test_invalid_target():
     assert validate_target("999.999.999.999") is False
+    
+def test_scan_range_too_large():
+    assert validate_port_range(1, 1001) is False

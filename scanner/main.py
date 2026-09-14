@@ -22,6 +22,9 @@ def validate_port_range(start_port, end_port):
     if start_port > end_port:
         return False
 
+    if end_port - start_port + 1 > 1000:
+        return False
+
     return True
 
 def validate_target(target):
