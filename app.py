@@ -1,9 +1,10 @@
 from flask import Flask, render_template, request, jsonify
+import ipaddress
 from concurrent.futures import ThreadPoolExecutor
 
 from scanner.main import check_port, validate_port_range
 from scanner.services import detect_service
-from scanner.risk import assess_risk
+from scanner.risk import assess
 from scanner.reporting import save_report
 
 app = Flask(__name__)
@@ -26,12 +27,13 @@ def run_scan(target, start_port, end_port):
 
     for port in open_ports:
         service = detect_service(target, port)
-        assessment = assess_risk(port, service["protocol"])
+        assessment = assess(port, service["protocol"])
 
         report_results.append({
             "port": port,
             "status": "OPEN",
             "protocol": service["protocol"],
+            "service": service["service"],
             "response": service["response"],
             "risk": assessment["risk"],
             "finding": assessment["finding"],
@@ -81,6 +83,18 @@ def scan():
 
     target = str(data.get("target", "")).strip()
 
+    if not target:
+        return jsonify({
+            "error": "Target IP address is required."
+        }), 400
+
+    try:
+        ipaddress.ip_address(target)
+    except ValueError:
+        return jsonify({
+            "error": "Invalid IP address. Enter a valid IPv4 or IPv6 address."
+        }), 400
+
     try:
         start_port = int(data.get("start_port"))
         end_port = int(data.get("end_port"))
@@ -89,18 +103,17 @@ def scan():
             "error": "Starting and ending ports must be valid numbers."
         }), 400
 
-    if not target:
-        return jsonify({
-            "error": "Target IP address is required."
-        }), 400
-
     if not validate_port_range(start_port, end_port):
         return jsonify({
-            "error": "Invalid port range. Ports must be between 1 and 65535."
+            "error": "Invalid port range. Ports must be between 1 and 65535, and starting port cannot be greater than ending port."
         }), 400
 
     try:
-        results = run_scan(target, start_port, end_port)
+        results = run_scan(
+            target,
+            start_port,
+            end_port
+        )
 
         return jsonify({
             "target": target,

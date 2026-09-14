@@ -1,16 +1,40 @@
 import socket
 
 
+KNOWN_SERVICES = {
+    21: "FTP",
+    22: "SSH",
+    23: "Telnet",
+    25: "SMTP",
+    53: "DNS",
+    80: "HTTP",
+    110: "POP3",
+    143: "IMAP",
+    443: "HTTPS",
+    3306: "MySQL",
+    3389: "RDP",
+    5432: "PostgreSQL",
+    6379: "Redis",
+    8080: "HTTP-Alt",
+}
+
+
 def detect_service(target, port):
+    service_name = KNOWN_SERVICES.get(port, "Unknown")
+
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(1)
 
         sock.connect((target, port))
-        sock.sendall(b"HEAD / HTTP/1.0\r\n\r\n")
+
+        sock.sendall(
+            b"HEAD / HTTP/1.1\r\n"
+            b"Host: localhost\r\n"
+            b"Connection: close\r\n\r\n"
+        )
 
         response = sock.recv(1024).decode(errors="ignore")
-
         sock.close()
 
         if response:
@@ -19,21 +43,29 @@ def detect_service(target, port):
             if first_line.startswith("HTTP/"):
                 return {
                     "protocol": "HTTP",
-                    "response": first_line
+                    "service": (
+                        service_name
+                        if service_name != "Unknown"
+                        else "HTTP Web Service"
+                    ),
+                    "response": first_line,
                 }
 
             return {
                 "protocol": "Unknown",
-                "response": first_line
+                "service": service_name,
+                "response": first_line,
             }
 
         return {
             "protocol": "Unknown",
-            "response": "No response"
+            "service": service_name,
+            "response": "No response",
         }
 
     except (ConnectionRefusedError, TimeoutError, OSError):
         return {
             "protocol": "Unknown",
-            "response": "Unable to identify service"
+            "service": service_name,
+            "response": "Unable to identify service",
         }

@@ -63,6 +63,7 @@ def main():
                 "port": port,
                 "status": "OPEN",
                 "protocol": service["protocol"],
+                "service": service["service"],
                 "response": service["response"],
                 "risk": assessment["risk"],
                 "finding": assessment["finding"],
