@@ -1,4 +1,5 @@
 import socket
+import ipaddress
 from concurrent.futures import ThreadPoolExecutor
 from scanner.services import detect_service
 from scanner.risk import assess
@@ -23,7 +24,13 @@ def validate_port_range(start_port, end_port):
 
     return True
 
-
+def validate_target(target):
+    try:
+        ipaddress.ip_address(target)
+        return True
+    except ValueError:
+        return False 
+    
 def main():
     target = input("Enter target IP address: ")
 
