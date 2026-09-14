@@ -105,7 +105,7 @@ def scan():
 
     if not validate_port_range(start_port, end_port):
         return jsonify({
-            "error": "Invalid port range. Ports must be between 1 and 65535, and starting port cannot be greater than ending port."
+            "error": "Invalid port range. Ports must be between 1 and 1000, and starting port cannot be greater than ending port."
         }), 400
 
     try:
